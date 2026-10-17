@@ -1,0 +1,2239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+<title>Payslip Studio — Premium Payslip Generator & Delivery</title>
+
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval'
+    https://cdn.tailwindcss.com https://unpkg.com
+    https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com;
+  font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com data:;
+  img-src 'self' data: blob:;
+  connect-src 'self' https://wa.me;
+  frame-ancestors 'none'; base-uri 'self'; form-action 'self';
+  object-src 'none'; upgrade-insecure-requests;
+" />
+<meta http-equiv="X-Content-Type-Options" content="nosniff" />
+<meta http-equiv="X-Frame-Options" content="DENY" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: { extend: {
+      fontFamily: {
+        sans: ['Inter','ui-sans-serif','system-ui','sans-serif'],
+        display: ['"Plus Jakarta Sans"','Inter','sans-serif'],
+      },
+      keyframes: {
+        'fade-up': { '0%':{opacity:0,transform:'translateY(12px)'},'100%':{opacity:1,transform:'none'} },
+        'fade-in': { '0%':{opacity:0},'100%':{opacity:1} },
+        'shake':   { '0%,100%':{transform:'translateX(0)'}, '20%,60%':{transform:'translateX(-6px)'}, '40%,80%':{transform:'translateX(6px)'} },
+      },
+      animation: {
+        'fade-up': 'fade-up .5s cubic-bezier(.16,1,.3,1) both',
+        'fade-in': 'fade-in .35s ease both',
+        'shake':   'shake .4s ease',
+      },
+    }},
+  };
+</script>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  /* ═══ HIGH-DPI RENDERING ═══ */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  img, canvas, svg {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+
+  :root {
+    --bg-base:      #e6ebf4;
+    --bg-surface:   #ecf0f7;
+    --neu-light:    #ffffff;
+    --neu-dark:     #c8d0dd;
+    --neu-shadow:   rgba(163,177,198,0.60);
+    --neu-highlight: rgba(255,255,255,0.95);
+    --accent:       #6366f1;
+    --accent-warm:  #fbbf24;
+  }
+  html.dark {
+    --bg-base:      #0a0f1f;
+    --bg-surface:   #10162a;
+    --neu-light:    #1a2138;
+    --neu-dark:     #05080f;
+    --neu-shadow:   rgba(0,0,0,0.75);
+    --neu-highlight: rgba(255,255,255,0.045);
+    --accent:       #818cf8;
+    --accent-warm:  #fbbf24;
+  }
+
+  /* ADVANCED THEME TRANSITION */
+  html.theme-transitioning,
+  html.theme-transitioning body,
+  html.theme-transitioning body *,
+  html.theme-transitioning body *::before,
+  html.theme-transitioning body *::after {
+    transition:
+      background-color .8s cubic-bezier(.4,0,.2,1),
+      color .8s cubic-bezier(.4,0,.2,1),
+      border-color .8s cubic-bezier(.4,0,.2,1),
+      box-shadow .8s cubic-bezier(.4,0,.2,1),
+      fill .8s cubic-bezier(.4,0,.2,1),
+      stroke .8s cubic-bezier(.4,0,.2,1),
+      opacity .8s cubic-bezier(.4,0,.2,1) !important;
+  }
+
+  .theme-ripple {
+    position: fixed;
+    top: 50%; left: 50%;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    pointer-events: none;
+    z-index: 999998;
+    background: radial-gradient(circle,
+      rgba(165,180,252,0.75) 0%,
+      rgba(165,180,252,0.35) 35%,
+      rgba(165,180,252,0.10) 60%,
+      transparent 75%);
+    animation: themeRipple 1.5s cubic-bezier(.22,1,.36,1) forwards;
+    will-change: transform, opacity;
+  }
+  html.dark .theme-ripple {
+    background: radial-gradient(circle,
+      rgba(129,140,248,0.75) 0%,
+      rgba(129,140,248,0.35) 35%,
+      rgba(129,140,248,0.10) 60%,
+      transparent 75%);
+  }
+  @keyframes themeRipple {
+    0%   { transform: translate(-50%,-50%) scale(0);  opacity: 0.9; }
+    40%  { opacity: 0.55; }
+    100% { transform: translate(-50%,-50%) scale(120); opacity: 0; }
+  }
+
+  .theme-sweep {
+    position: fixed; inset: 0;
+    z-index: 999999;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .theme-sweep::before {
+    content: '';
+    position: absolute;
+    inset: -25%;
+    background: linear-gradient(115deg,
+      transparent 25%,
+      rgba(199,210,254,0.55) 45%,
+      rgba(165,180,252,0.65) 50%,
+      rgba(199,210,254,0.55) 55%,
+      transparent 75%);
+    transform: translateX(-150%) skewX(-10deg);
+    animation: themeSweep 1.35s cubic-bezier(.22,1,.36,1);
+    will-change: transform;
+  }
+  html.dark .theme-sweep::before {
+    background: linear-gradient(115deg,
+      transparent 25%,
+      rgba(129,140,248,0.55) 45%,
+      rgba(99,102,241,0.70) 50%,
+      rgba(129,140,248,0.55) 55%,
+      transparent 75%);
+  }
+  @keyframes themeSweep {
+    0%   { transform: translateX(-150%) skewX(-10deg); }
+    100% { transform: translateX(150%)  skewX(-10deg); }
+  }
+
+  .theme-flash {
+    position: fixed; inset: 0;
+    z-index: 999997;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.18) 0%, transparent 60%);
+    animation: themeFlash .9s ease-out forwards;
+  }
+  html.dark .theme-flash {
+    background: radial-gradient(circle at 50% 50%, rgba(30,41,59,0.35) 0%, transparent 60%);
+  }
+  @keyframes themeFlash {
+    0%   { opacity: 0; }
+    35%  { opacity: 0.7; }
+    100% { opacity: 0; }
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg-base);
+    min-height: 100vh; overflow-x: hidden;
+    transition: background .5s ease;
+  }
+  html.dark body { background: var(--bg-base); }
+
+  /* BACKGROUND */
+  .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; background: var(--bg-base); }
+  .bg-pill { position: absolute; border-radius: 999px; }
+  .bg-pill.raised {
+    background: linear-gradient(145deg, var(--neu-light), var(--bg-surface));
+    box-shadow: 22px 22px 60px var(--neu-shadow), -22px -22px 60px var(--neu-highlight);
+    opacity: .55;
+  }
+  html.dark .bg-pill.raised {
+    background: linear-gradient(145deg, #1a2138, #0d1428);
+    box-shadow: 26px 26px 70px rgba(0,0,0,0.85), -26px -26px 70px rgba(255,255,255,0.03);
+    opacity: .75;
+  }
+  .bg-spot { position: absolute; border-radius: 9999px; filter: blur(120px); }
+  .bg-spot.indigo { width: 620px; height: 620px; top: -180px; left: -160px; background: radial-gradient(circle, rgba(165,180,252,0.55), transparent 70%); opacity: .55; }
+  .bg-spot.peach { width: 520px; height: 520px; bottom: -140px; right: -120px; background: radial-gradient(circle, rgba(253,230,138,0.45), transparent 70%); opacity: .5; }
+  html.dark .bg-spot.indigo { background: radial-gradient(circle, rgba(99,102,241,0.55), transparent 70%); opacity: .45; }
+  html.dark .bg-spot.peach  { background: radial-gradient(circle, rgba(168,85,247,0.42), transparent 70%); opacity: .40; }
+  .bg-grid {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle at 50% 50%, rgba(163,177,198,0.14) 1px, transparent 1.4px);
+    background-size: 22px 22px; opacity: .55;
+    mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+  }
+  .grain::after {
+    content: ''; position: fixed; inset: 0; z-index: 2; pointer-events: none; opacity: .035;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.55'/></svg>");
+  }
+  .dark .grain::after { opacity: .06; }
+
+  /* NEUMORPHIC */
+  .neu {
+    background: var(--bg-surface); border-radius: 22px;
+    box-shadow: 10px 10px 22px var(--neu-shadow), -10px -10px 22px var(--neu-highlight);
+    transition: box-shadow .35s ease, background .35s ease;
+  }
+  .neu:hover { box-shadow: 14px 14px 30px var(--neu-shadow), -14px -14px 30px var(--neu-highlight); }
+  .neu-inset { background: var(--bg-surface); border-radius: 20px; box-shadow: inset 6px 6px 14px var(--neu-shadow), inset -6px -6px 14px var(--neu-highlight); }
+  .dark .neu { background: var(--bg-surface); box-shadow: 12px 12px 28px rgba(0,0,0,0.75), -12px -12px 28px rgba(255,255,255,0.03); }
+  .dark .neu:hover { box-shadow: 16px 16px 34px rgba(0,0,0,0.85), -16px -16px 34px rgba(255,255,255,0.04); }
+  .dark .neu-inset { background: #0d1428; box-shadow: inset 8px 8px 18px rgba(0,0,0,0.85), inset -8px -8px 18px rgba(255,255,255,0.03); }
+
+  /* GLASS */
+  .glass {
+    background: rgba(255,255,255,0.55);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 22px;
+    box-shadow: 0 14px 32px -12px rgba(163,177,198,0.55), inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+  .dark .glass {
+    background: rgba(16,22,42,0.72);
+    border-color: rgba(148,163,184,0.14);
+    box-shadow: 0 16px 36px -14px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+
+  /* INPUTS */
+  .neu-input {
+    background: var(--bg-surface); border: none; border-radius: 999px;
+    padding: 11px 18px; color: #1e293b;
+    box-shadow: inset 4px 4px 9px var(--neu-shadow), inset -4px -4px 9px var(--neu-highlight);
+    transition: box-shadow .25s ease, background .25s ease;
+    width: 100%; font-size: 14px;
+  }
+  .neu-input:focus {
+    outline: none;
+    box-shadow: inset 5px 5px 11px var(--neu-shadow), inset -5px -5px 11px var(--neu-highlight), 0 0 0 3px rgba(99,102,241,0.18);
+  }
+  .dark .neu-input { background: #0d1428; color: #e2e8f0; box-shadow: inset 5px 5px 12px rgba(0,0,0,0.85), inset -5px -5px 12px rgba(255,255,255,0.03); }
+  .dark .neu-input:focus { box-shadow: inset 6px 6px 14px rgba(0,0,0,0.9), inset -6px -6px 14px rgba(255,255,255,0.04), 0 0 0 3px rgba(129,140,248,0.22); }
+  .neu-input::placeholder { color: rgba(100,116,139,0.55); }
+  .dark .neu-input::placeholder { color: rgba(148,163,184,0.45); }
+  .neu-input.rect { border-radius: 14px; padding: 10px 14px; font-size: 13.5px; }
+
+  html.dark { color-scheme: dark; }
+  html:not(.dark) { color-scheme: light; }
+
+  .nice-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+  .nice-scroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.4); border-radius: 999px; }
+  .nice-scroll::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.6); }
+  .nice-scroll::-webkit-scrollbar-track { background: transparent; }
+
+  /* BUTTONS */
+  .btn {
+    position: relative; display: inline-flex; align-items: center; justify-content: center;
+    gap: 10px; height: 48px; padding: 0 18px; border-radius: 16px;
+    font-size: 13px; font-weight: 700; letter-spacing: -0.005em;
+    border: none; cursor: pointer; white-space: nowrap; overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform .28s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease, background .3s ease;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(0) scale(.97); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+  .btn-chip {
+    display: grid; place-items: center;
+    width: 34px; height: 34px; flex-shrink: 0; border-radius: 11px;
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease, background .3s ease;
+  }
+  .btn:hover .btn-chip { transform: scale(1.10) rotate(-3deg); }
+  .btn .btn-chip svg { width: 20px; height: 20px; }
+
+  .btn-ghost {
+    background: linear-gradient(145deg, var(--neu-light), var(--bg-surface));
+    color: #334155;
+    box-shadow: 6px 6px 14px var(--neu-shadow), -6px -6px 14px var(--neu-highlight);
+  }
+  .btn-ghost .btn-chip {
+    background: linear-gradient(145deg, var(--neu-light), var(--bg-surface));
+    color: #6366f1;
+    box-shadow: 3px 3px 8px var(--neu-shadow), -3px -3px 8px var(--neu-highlight);
+  }
+  .btn-ghost:hover {
+    box-shadow: 10px 10px 20px var(--neu-shadow), -10px -10px 20px var(--neu-highlight);
+    color: #1e293b;
+  }
+  .dark .btn-ghost {
+    background: linear-gradient(145deg, #1a2138, #0d1428);
+    color: #cbd5e1;
+    box-shadow: 7px 7px 16px rgba(0,0,0,0.8), -7px -7px 16px rgba(255,255,255,0.03);
+  }
+  .dark .btn-ghost .btn-chip {
+    background: linear-gradient(145deg, #1a2138, #0d1428);
+    color: #a5b4fc;
+    box-shadow: 4px 4px 10px rgba(0,0,0,0.8), -4px -4px 10px rgba(255,255,255,0.03);
+  }
+  .dark .btn-ghost:hover { color: #f1f5f9; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #fff;
+    box-shadow: 8px 8px 20px rgba(99,102,241,0.5), -4px -4px 14px rgba(255,255,255,0.35), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .btn-primary .btn-chip {
+    background: rgba(255,255,255,0.22);
+    color: #fff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 2px rgba(0,0,0,0.1);
+  }
+  .btn-primary:hover {
+    box-shadow: 14px 14px 30px rgba(99,102,241,0.6), -5px -5px 18px rgba(255,255,255,0.4), inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+  .btn-primary::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+    transform: translateX(-130%); transition: transform .9s ease; pointer-events: none;
+  }
+  .btn-primary:hover::after { transform: translateX(130%); }
+
+  .btn-whatsapp {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    box-shadow: 8px 8px 20px rgba(16,185,129,0.55), -4px -4px 14px rgba(255,255,255,0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  .btn-whatsapp .btn-chip {
+    background: rgba(255,255,255,0.25);
+    color: #fff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 2px rgba(0,0,0,0.12);
+  }
+  .btn-whatsapp::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+    transform: translateX(-130%); transition: transform 1s ease; pointer-events: none;
+  }
+  .btn-whatsapp:hover::after { transform: translateX(130%); }
+  .btn-whatsapp:hover {
+    box-shadow: 16px 16px 32px rgba(16,185,129,0.65), -5px -5px 18px rgba(255,255,255,0.4), inset 0 1px 0 rgba(255,255,255,0.32);
+  }
+
+  .btn-share {
+    background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+    color: #fff;
+    box-shadow: 8px 8px 20px rgba(14,165,233,0.5), -4px -4px 14px rgba(255,255,255,0.35), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .btn-share .btn-chip {
+    background: rgba(255,255,255,0.22);
+    color: #fff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 2px rgba(0,0,0,0.1);
+  }
+  .btn-share::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+    transform: translateX(-130%); transition: transform .9s ease; pointer-events: none;
+  }
+  .btn-share:hover::after { transform: translateX(130%); }
+  .btn-share:hover {
+    box-shadow: 14px 14px 30px rgba(14,165,233,0.6), -5px -5px 18px rgba(255,255,255,0.4), inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+
+  /* ICON TILE */
+  .icon-tile {
+    position: relative;
+    width: 54px; height: 54px;
+    border-radius: 18px;
+    border: none;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      transform .3s cubic-bezier(.34,1.56,.64,1),
+      box-shadow .35s ease,
+      background .35s ease;
+  }
+  .icon-tile svg {
+    width: 22px; height: 22px;
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1), color .3s ease;
+  }
+  .icon-tile:hover svg { transform: scale(1.15) rotate(-4deg); }
+  .icon-tile:active { transform: scale(.94); }
+  .icon-tile:disabled { opacity: .5; cursor: not-allowed; }
+  .icon-tile:disabled:hover { transform: none; }
+  .icon-tile:disabled:hover svg { transform: none; }
+
+  .icon-tile.soft {
+    background: linear-gradient(145deg, var(--neu-light), var(--bg-surface));
+    color: #64748b;
+    box-shadow:
+      5px 5px 12px var(--neu-shadow),
+      -5px -5px 12px var(--neu-highlight),
+      inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+  .icon-tile.soft:hover {
+    transform: translateY(-3px);
+    color: #4f46e5;
+    box-shadow:
+      8px 8px 18px var(--neu-shadow),
+      -8px -8px 18px var(--neu-highlight),
+      inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .dark .icon-tile.soft {
+    background: linear-gradient(145deg, #1a2138, #0d1428);
+    color: #94a3b8;
+    box-shadow:
+      6px 6px 14px rgba(0,0,0,0.8),
+      -6px -6px 14px rgba(255,255,255,0.03),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .dark .icon-tile.soft:hover {
+    color: #a5b4fc;
+    box-shadow:
+      9px 9px 20px rgba(0,0,0,0.9),
+      -9px -9px 20px rgba(255,255,255,0.04),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+
+  .icon-tile.primary {
+    background: linear-gradient(145deg, #818cf8 0%, #6366f1 45%, #8b5cf6 100%);
+    color: #fff;
+    box-shadow:
+      6px 6px 16px rgba(99,102,241,0.5),
+      -4px -4px 12px rgba(255,255,255,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.35),
+      inset 0 -2px 6px rgba(49,46,129,0.25);
+  }
+  .icon-tile.primary:hover {
+    transform: translateY(-3px) scale(1.04);
+    box-shadow:
+      10px 10px 24px rgba(99,102,241,0.6),
+      -5px -5px 16px rgba(255,255,255,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.45),
+      inset 0 -2px 6px rgba(49,46,129,0.3);
+  }
+  .icon-tile.primary::before {
+    content: ''; position: absolute; inset: 0; border-radius: inherit;
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.5), transparent 55%);
+    pointer-events: none;
+    opacity: .9;
+  }
+
+  .icon-tile.emerald {
+    background: linear-gradient(145deg, #34d399 0%, #10b981 45%, #059669 100%);
+    color: #fff;
+    box-shadow:
+      6px 6px 16px rgba(16,185,129,0.5),
+      -4px -4px 12px rgba(255,255,255,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.35),
+      inset 0 -2px 6px rgba(6,78,59,0.3);
+  }
+  .icon-tile.emerald:hover {
+    transform: translateY(-3px) scale(1.04);
+    box-shadow:
+      10px 10px 24px rgba(16,185,129,0.6),
+      -5px -5px 16px rgba(255,255,255,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.45),
+      inset 0 -2px 6px rgba(6,78,59,0.35);
+  }
+  .icon-tile.emerald::before {
+    content: ''; position: absolute; inset: 0; border-radius: inherit;
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.5), transparent 55%);
+    pointer-events: none;
+    opacity: .9;
+  }
+
+  .icon-tile.sky {
+    background: linear-gradient(145deg, #38bdf8 0%, #0ea5e9 45%, #6366f1 100%);
+    color: #fff;
+    box-shadow:
+      6px 6px 16px rgba(14,165,233,0.5),
+      -4px -4px 12px rgba(255,255,255,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.35),
+      inset 0 -2px 6px rgba(30,58,138,0.28);
+  }
+  .icon-tile.sky:hover {
+    transform: translateY(-3px) scale(1.04);
+    box-shadow:
+      10px 10px 24px rgba(14,165,233,0.6),
+      -5px -5px 16px rgba(255,255,255,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.45),
+      inset 0 -2px 6px rgba(30,58,138,0.32);
+  }
+  .icon-tile.sky::before {
+    content: ''; position: absolute; inset: 0; border-radius: inherit;
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.5), transparent 55%);
+    pointer-events: none;
+    opacity: .9;
+  }
+
+  /* Tile label */
+  .tile-label {
+    display: block;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    transition: color .3s ease;
+    user-select: none;
+    pointer-events: none;
+  }
+  .dark .tile-label { color: #94a3b8; }
+  .tile-wrap:hover .tile-label { color: #4f46e5; }
+  .dark .tile-wrap:hover .tile-label { color: #a5b4fc; }
+
+  /* CURRENCY TILE */
+  .currency-tile-wrap {
+    position: relative;
+    width: 54px; height: 54px;
+  }
+  .currency-tile-visual {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background: linear-gradient(145deg, var(--neu-light), var(--bg-surface));
+    color: #4f46e5;
+    box-shadow:
+      5px 5px 12px var(--neu-shadow),
+      -5px -5px 12px var(--neu-highlight),
+      inset 0 1px 0 rgba(255,255,255,0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .35s ease, color .3s ease;
+    overflow: hidden;
+  }
+  .currency-tile-symbol {
+    font-size: 17px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .currency-tile-country {
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    margin-top: 3px;
+    opacity: 0.78;
+    line-height: 1;
+  }
+  .currency-tile-select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    outline: none;
+  }
+  .dark .currency-tile-visual {
+    background: linear-gradient(145deg, #1a2138, #0d1428);
+    color: #a5b4fc;
+    box-shadow:
+      6px 6px 14px rgba(0,0,0,0.8),
+      -6px -6px 14px rgba(255,255,255,0.03),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .tile-wrap:hover .currency-tile-visual {
+    transform: translateY(-3px);
+    box-shadow:
+      8px 8px 18px var(--neu-shadow),
+      -8px -8px 18px var(--neu-highlight),
+      inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .dark .tile-wrap:hover .currency-tile-visual {
+    transform: translateY(-3px);
+    box-shadow:
+      9px 9px 20px rgba(0,0,0,0.9),
+      -9px -9px 20px rgba(255,255,255,0.04);
+  }
+
+  /* Round social icon */
+  .neu-social {
+    width: 48px; height: 48px; border-radius: 999px; border: none;
+    background: linear-gradient(145deg, #ffffff, #e6ebf4);
+    display: grid; place-items: center; cursor: pointer;
+    box-shadow: 5px 5px 12px rgba(163,177,198,0.55), -5px -5px 12px rgba(255,255,255,0.95);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease;
+  }
+  .neu-social:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 8px 8px 18px rgba(163,177,198,0.65), -8px -8px 18px rgba(255,255,255,1);
+  }
+  .neu-social:active { transform: translateY(0) scale(.96); }
+  .dark .neu-social {
+    background: linear-gradient(145deg, #1a2138, #0d1428);
+    box-shadow: 6px 6px 14px rgba(0,0,0,0.8), -6px -6px 14px rgba(255,255,255,0.03);
+  }
+  .dark .neu-social:hover {
+    box-shadow: 9px 9px 20px rgba(0,0,0,0.9), -9px -9px 20px rgba(255,255,255,0.04);
+  }
+  .neu-social svg { width: 22px; height: 22px; }
+
+  /* LOGIN PAGE */
+  .login-shell { position: relative; z-index: 4; min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+  .login-card {
+    width: 100%; max-width: 440px;
+    background: linear-gradient(145deg, #f4f7fc, #e6ebf4);
+    border-radius: 42px; padding: 56px 44px 44px;
+    box-shadow: 22px 22px 60px rgba(163,177,198,0.65), -22px -22px 60px rgba(255,255,255,0.95);
+    animation: fade-up .6s cubic-bezier(.16,1,.3,1) both;
+  }
+  html.dark .login-card {
+    background: linear-gradient(145deg, #141a30, #0a0f1f);
+    box-shadow: 24px 24px 64px rgba(0,0,0,0.85), -24px -24px 64px rgba(255,255,255,0.03);
+  }
+  .login-label { font-size: 15px; font-weight: 500; color: #64748b; margin-bottom: 10px; display: block; letter-spacing: -0.005em; }
+  html.dark .login-label { color: #94a3b8; }
+  .login-input {
+    width: 100%; background: #eef2f8; border: none; border-radius: 999px;
+    padding: 14px 22px; color: #1e293b; font-size: 14.5px;
+    box-shadow: inset 5px 5px 12px rgba(163,177,198,0.55), inset -5px -5px 12px rgba(255,255,255,0.95);
+    transition: box-shadow .25s ease, background .25s ease;
+  }
+  .login-input:focus {
+    outline: none; background: #f4f7fc;
+    box-shadow: inset 6px 6px 14px rgba(163,177,198,0.6), inset -6px -6px 14px rgba(255,255,255,1), 0 0 0 3px rgba(99,102,241,0.15);
+  }
+  html.dark .login-input { background: #0d1428; color: #e2e8f0; box-shadow: inset 6px 6px 14px rgba(0,0,0,0.85), inset -6px -6px 14px rgba(255,255,255,0.03); }
+  .login-input::placeholder { color: rgba(100,116,139,0.55); }
+  .login-btn-primary {
+    width: 100%; height: 54px; border-radius: 999px; border: none;
+    background: linear-gradient(145deg, #475569, #334155); color: #fff;
+    font-size: 17px; font-weight: 600; letter-spacing: -0.01em; cursor: pointer;
+    box-shadow: 8px 8px 22px rgba(100,116,139,0.45), -6px -6px 18px rgba(255,255,255,0.6), inset 0 1px 0 rgba(255,255,255,0.15);
+    transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease;
+  }
+  .login-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 12px 12px 28px rgba(100,116,139,0.55), -8px -8px 22px rgba(255,255,255,0.7), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .login-btn-primary:active { transform: translateY(0) scale(.985); }
+  .login-btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+  html.dark .login-btn-primary { background: linear-gradient(145deg, #312e81, #1e1b4b); }
+
+  /* REVERSE / BACK BUTTON — neumorphic pill, animated in */
+  .login-back-btn {
+    width: 100%; height: 48px; border-radius: 999px; border: none;
+    background: linear-gradient(145deg, var(--neu-light), var(--bg-surface));
+    color: #475569;
+    font-size: 14.5px; font-weight: 700; letter-spacing: -0.005em;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    box-shadow:
+      6px 6px 14px var(--neu-shadow),
+      -6px -6px 14px var(--neu-highlight),
+      inset 0 1px 0 rgba(255,255,255,0.7);
+    transition: transform .28s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease, color .3s ease;
+    animation: backBtnIn .45s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  .login-back-btn:hover {
+    transform: translateY(-2px);
+    color: #4f46e5;
+    box-shadow:
+      10px 10px 22px var(--neu-shadow),
+      -10px -10px 22px var(--neu-highlight),
+      inset 0 1px 0 rgba(255,255,255,0.8);
+  }
+  .login-back-btn:active { transform: translateY(0) scale(.97); }
+  .login-back-btn svg { width: 18px; height: 18px; transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+  .login-back-btn:hover svg { transform: translateX(-3px); }
+  html.dark .login-back-btn {
+    background: linear-gradient(145deg, #1a2138, #0d1428);
+    color: #cbd5e1;
+    box-shadow:
+      7px 7px 16px rgba(0,0,0,0.8),
+      -7px -7px 16px rgba(255,255,255,0.03),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  html.dark .login-back-btn:hover {
+    color: #a5b4fc;
+    box-shadow:
+      10px 10px 22px rgba(0,0,0,0.9),
+      -10px -10px 22px rgba(255,255,255,0.04),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  @keyframes backBtnIn {
+    0%   { opacity: 0; transform: translateY(8px) scale(.96); }
+    100% { opacity: 1; transform: translateY(0)   scale(1);   }
+  }
+
+  /* MODALS */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 99990;
+    display: grid; place-items: center; padding: 16px;
+    background: rgba(2,6,23,0.7);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    animation: fadeUp .25s ease both;
+  }
+  @keyframes fadeUp { from { opacity: 0; } to { opacity: 1; } }
+  .modal-card {
+    width: 100%; max-width: 520px; border-radius: 26px; padding: 28px;
+    background: var(--bg-surface);
+    box-shadow: 14px 14px 36px var(--neu-shadow), -14px -14px 36px var(--neu-highlight), inset 0 1px 0 rgba(255,255,255,0.6);
+    animation: modalIn .4s cubic-bezier(.16,1,.3,1) both;
+    max-height: 92vh; overflow-y: auto;
+  }
+  .dark .modal-card { background: #10162a; box-shadow: 16px 16px 42px rgba(0,0,0,0.85), -16px -16px 42px rgba(255,255,255,0.03); }
+  @keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(.96); } to { opacity: 1; transform: none; } }
+
+  .payslip-sheet { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pdf-overlay {
+    position: fixed; inset: 0; z-index: 100000;
+    display: grid; place-items: center;
+    background: rgba(2,6,23,0.78);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    animation: fadeUp .25s ease both;
+  }
+  .pdf-spinner {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    padding: 32px 40px; border-radius: 24px;
+    background: rgba(255,255,255,0.96); color: #0f172a;
+    font-weight: 700; font-size: 14px;
+    box-shadow: 0 30px 80px -20px rgba(0,0,0,0.8);
+    border: 1px solid rgba(255,255,255,0.9);
+    min-width: 280px;
+  }
+  .dark .pdf-spinner { background: rgba(16,22,42,0.97); color: #e2e8f0; border-color: rgba(148,163,184,0.2); }
+  .pdf-spinner .ring {
+    width: 44px; height: 44px; border-radius: 9999px;
+    border: 4px solid rgba(99,102,241,0.2); border-top-color: #6366f1;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .pdf-progress-bar {
+    width: 100%; height: 6px; background: rgba(148,163,184,0.25);
+    border-radius: 999px; overflow: hidden; margin-top: 8px;
+  }
+  .pdf-progress-fill {
+    height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 999px; transition: width .3s ease;
+  }
+
+  .check-svg { width: 64px; height: 64px; }
+  .check-svg circle { stroke-dasharray: 166; stroke-dashoffset: 166; animation: stroke .6s ease-out forwards; }
+  .check-svg path   { stroke-dasharray: 48;  stroke-dashoffset: 48;  animation: checkmark .5s ease-out .4s forwards; }
+  @keyframes stroke { to { stroke-dashoffset: 0; } }
+  @keyframes checkmark { to { stroke-dashoffset: 0; } }
+
+  @media print {
+    @page { size: A4 portrait; margin: 0; }
+    html, body { background: #fff !important; }
+    body * { visibility: hidden !important; }
+    #payslip-sheet, #payslip-sheet * { visibility: visible !important; }
+    #payslip-sheet {
+      position: absolute !important; top: 0 !important; left: 0 !important;
+      transform: none !important; box-shadow: none !important;
+      border-radius: 0 !important; margin: 0 !important;
+      width: 210mm !important; min-height: 297mm !important;
+      padding: 14mm 15mm !important;
+    }
+    .no-print, .bg-layer, .bg-grid, .bg-spot, .bg-pill, .grain::after { display: none !important; }
+  }
+</style>
+</head>
+
+<body class="grain">
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+/* ============================================================================
+   PAYSLIP STUDIO — v20
+   CHANGES:
+     •  WhatsApp + Download tiles now use the SAME soft neumorphic style as
+        the other tiles (icon colour matches).
+     •  PDF render scale reduced 8× → 6× (8K-quality output).
+     •  New reverse / back button on login, appears ONLY after wrong credentials.
+   ========================================================================== */
+
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+/* ---------- §1  UTILITIES ----------------------------------------------- */
+
+const CURRENCIES = {
+  USD: { label: 'USD — US Dollar',        unit: ['dollar','dollars'], sub: ['cent','cents'],   indian: false },
+  EUR: { label: 'EUR — Euro',             unit: ['euro','euros'],     sub: ['cent','cents'],   indian: false },
+  GBP: { label: 'GBP — British Pound',    unit: ['pound','pounds'],   sub: ['penny','pence'],  indian: false },
+  INR: { label: 'INR — Indian Rupee',     unit: ['rupee','rupees'],   sub: ['paisa','paise'],  indian: true  },
+  CAD: { label: 'CAD — Canadian Dollar',  unit: ['dollar','dollars'], sub: ['cent','cents'],   indian: false },
+  AUD: { label: 'AUD — Australian Dollar',unit: ['dollar','dollars'], sub: ['cent','cents'],   indian: false },
+};
+const CURRENCY_ORDER = ['USD','EUR','GBP','INR','CAD','AUD'];
+
+const CURRENCY_INFO = {
+  USD: { symbol: '$',  country: 'USA' },
+  EUR: { symbol: '€',  country: 'EU'  },
+  GBP: { symbol: '£',  country: 'UK'  },
+  INR: { symbol: '₹',  country: 'IND' },
+  CAD: { symbol: 'C$', country: 'CAN' },
+  AUD: { symbol: 'A$', country: 'AUS' },
+};
+
+const MONTHS = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+const EARNING_SUGGESTIONS = [
+  'Basic Pay','House Rent Allowance (HRA)','Special Allowance',
+  'Bonus / Performance Pay','Overtime / Transport Allowance',
+  'Dearness Allowance','Medical Allowance','Conveyance Allowance','Leave Travel Allowance',
+];
+const DEDUCTION_SUGGESTIONS = [
+  'Income Tax / TDS','Provident Fund / 401(k)','Health Insurance / Benefits',
+  'Unpaid Leave / Absence Deduction','Professional Tax','Loan / Advance Recovery','Group Insurance',
+];
+
+let __uidCounter = 0;
+const uid = () => `row_${Date.now().toString(36)}${(__uidCounter++).toString(36)}`;
+const toNumber = (v) => { const n = parseFloat(String(v ?? '').replace(/,/g, '')); return Number.isFinite(n) ? n : 0; };
+const toInt    = (v) => { const n = parseInt(String(v ?? '').replace(/[^\d-]/g, ''), 10); return Number.isFinite(n) ? n : 0; };
+const formatMoney = (amount, code = 'USD') =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: code, minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    .format(Number.isFinite(amount) ? amount : 0);
+
+const ONES = ['zero','one','two','three','four','five','six','seven','eight','nine',
+  'ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+const TENS = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+function twoDigitWords(n) { if (n < 20) return ONES[n]; const t = Math.floor(n/10), o = n%10; return TENS[t] + (o ? '-' + ONES[o] : ''); }
+function intToWords(n, indian = false) {
+  n = Math.floor(n); if (!Number.isFinite(n) || n < 0) return ''; if (n < 100) return twoDigitWords(n);
+  const groups = indian
+    ? [[10000000,'crore'],[100000,'lakh'],[1000,'thousand'],[100,'hundred']]
+    : [[1000000000,'billion'],[1000000,'million'],[1000,'thousand'],[100,'hundred']];
+  const parts = [];
+  for (const [value, name] of groups) { if (n >= value) { parts.push(`${intToWords(Math.floor(n/value), indian)} ${name}`); n %= value; } }
+  if (n > 0) parts.push(twoDigitWords(n)); return parts.join(' ');
+}
+function amountInWords(amount, code = 'USD') {
+  const meta = CURRENCIES[code] || CURRENCIES.USD;
+  const value = Number.isFinite(amount) ? amount : 0;
+  const negative = value < 0; const abs = Math.abs(value);
+  let whole = Math.floor(abs + 1e-9); let fraction = Math.round((abs - whole) * 100);
+  if (fraction === 100) { whole += 1; fraction = 0; }
+  let out = `${intToWords(whole, meta.indian)} ${whole === 1 ? meta.unit[0] : meta.unit[1]}`;
+  if (fraction > 0) out += ` and ${intToWords(fraction, false)} ${fraction === 1 ? meta.sub[0] : meta.sub[1]}`;
+  out = out.replace(/\s+/g,' ').trim();
+  out = out.charAt(0).toUpperCase() + out.slice(1) + ' only';
+  return negative ? `Minus ${out}` : out;
+}
+const sumItems = (items) => items.reduce((t, i) => t + toNumber(i.amount), 0);
+const daysInMonth = (monthName, year) => {
+  const idx = MONTHS.indexOf(monthName); if (idx < 0) return 0;
+  const y = parseInt(year, 10); if (!Number.isFinite(y)) return 0;
+  return new Date(y, idx + 1, 0).getDate();
+};
+
+/* ---------- §2  SECURITY ------------------------------------------------ */
+
+const sanitiseText = (str, maxLen = 500) => String(str ?? '')
+  .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+  .replace(/[\u200B-\u200D\uFEFF]/g, '')
+  .slice(0, maxLen);
+
+const safeFilename = (name, fallback = 'Employee') =>
+  String(name ?? '').replace(/[^a-zA-Z0-9_\- ]/g, '_').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').slice(0, 64) || fallback;
+
+/* ---------- §3  AUTH ---------------------------------------------------- */
+
+const USERS_KEY = 'payslip-studio:users';
+const SESSION_KEY = 'payslip-studio:session';
+const DEFAULT_USERNAME = 'admin';
+const DEFAULT_PASSWORD = 'thealpha';
+
+function loadUsers() {
+  try { const raw = localStorage.getItem(USERS_KEY); return raw ? JSON.parse(raw) : {}; }
+  catch { return {}; }
+}
+function saveUsers(users) { try { localStorage.setItem(USERS_KEY, JSON.stringify(users)); } catch {} }
+
+function simpleHash(str) {
+  let h1 = 0xdeadbeef ^ str.length;
+  let h2 = 0x41c6ce57 ^ str.length;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0');
+}
+
+function seedDefaultUser() {
+  const users = loadUsers();
+  if (users[DEFAULT_USERNAME]) return;
+  users[DEFAULT_USERNAME] = {
+    username: DEFAULT_USERNAME,
+    hash: simpleHash(DEFAULT_PASSWORD + '::' + DEFAULT_USERNAME),
+    createdAt: new Date().toISOString(),
+    isDefault: true,
+  };
+  saveUsers(users);
+}
+
+function loginUser(username, password) {
+  const uname = String(username || '').trim().toLowerCase();
+  const users = loadUsers();
+  const u = users[uname];
+  if (!u) return { ok: false, error: 'Invalid username or password' };
+  const hash = simpleHash(password + '::' + uname);
+  if (hash !== u.hash) return { ok: false, error: 'Invalid username or password' };
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify({ username: uname, at: Date.now() })); } catch {}
+  return { ok: true, username: uname };
+}
+function loadSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s?.username) return null;
+    if (Date.now() - s.at > 7 * 24 * 3600 * 1000) { localStorage.removeItem(SESSION_KEY); return null; }
+    return s;
+  } catch { return null; }
+}
+function clearSession() { try { localStorage.removeItem(SESSION_KEY); } catch {} }
+
+/* ---------- §4  STATE --------------------------------------------------- */
+
+const STORAGE_KEY = 'payslip-studio:v20';
+const THEME_KEY   = 'payslip-studio:theme';
+
+const createInitialState = () => ({
+  currency: 'USD',
+  employer: { name: '', address: '', regId: '', logo: '' },
+  employee: {
+    name: '', id: '', designation: '', department: '', doj: '',
+    month: '', year: String(new Date().getFullYear()), bank: '', taxId: '', uan: '',
+    workingDays: '', daysPresent: '', daysAbsent: '', email: '', phone: '',
+  },
+  earnings: [
+    { id: uid(), label: 'Basic Pay', amount: '' },
+    { id: uid(), label: 'House Rent Allowance (HRA)', amount: '' },
+    { id: uid(), label: 'Special Allowance', amount: '' },
+  ],
+  deductions: [
+    { id: uid(), label: 'Income Tax / TDS', amount: '' },
+    { id: uid(), label: 'Provident Fund / 401(k)', amount: '' },
+  ],
+  notes: 'This is a computer-generated payslip and does not require a signature.',
+});
+const createSampleState = () => ({
+  currency: 'USD',
+  employer: { name: 'Northwind Technologies Inc.', address: '1420 Market Street, Suite 900\nSan Francisco, CA 94103, USA', regId: 'US-EIN 84-2910377', logo: '' },
+  employee: {
+    name: 'Ananya Sharma', id: 'EMP-2041',
+    designation: 'Senior Software Engineer', department: 'Engineering',
+    doj: '2021-04-12', month: 'March', year: '2025',
+    bank: 'Chase Bank •••• 4821 (ACH Transfer)', taxId: 'SSN 123-45-6789',
+    uan: 'UAN 1012 3456 7890', workingDays: '21', daysPresent: '21', daysAbsent: '0',
+    email: 'ananya.sharma@example.com', phone: '+14155550142',
+  },
+  earnings: [
+    { id: uid(), label: 'Basic Pay', amount: '5200' },
+    { id: uid(), label: 'House Rent Allowance (HRA)', amount: '1300' },
+    { id: uid(), label: 'Special Allowance', amount: '600' },
+    { id: uid(), label: 'Bonus / Performance Pay', amount: '450' },
+    { id: uid(), label: 'Overtime / Transport Allowance', amount: '150' },
+  ],
+  deductions: [
+    { id: uid(), label: 'Income Tax / TDS', amount: '780' },
+    { id: uid(), label: 'Provident Fund / 401(k)', amount: '520' },
+    { id: uid(), label: 'Health Insurance / Benefits', amount: '180' },
+  ],
+  notes: 'This is a computer-generated payslip and does not require a signature.',
+});
+function loadPersistedState() {
+  const base = createInitialState();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return base;
+    const p = JSON.parse(raw);
+    return {
+      ...base, ...p,
+      employer: { ...base.employer, ...(p.employer || {}) },
+      employee: { ...base.employee, ...(p.employee || {}) },
+      earnings: Array.isArray(p.earnings) && p.earnings.length ? p.earnings : base.earnings,
+      deductions: Array.isArray(p.deductions) && p.deductions.length ? p.deductions : base.deductions,
+    };
+  } catch { return base; }
+}
+
+/* ============================================================================
+   §5  BACKGROUND
+   ========================================================================== */
+
+function NeumorphicBackground() {
+  return (
+    <div className="bg-layer" aria-hidden="true">
+      <div className="bg-spot indigo" />
+      <div className="bg-spot peach" />
+      <div className="bg-pill raised" style={{ width: 620, height: 220, top: '6%', left: '-8%', transform: 'rotate(-12deg)' }} />
+      <div className="bg-pill raised" style={{ width: 460, height: 180, top: '62%', left: '-4%', transform: 'rotate(8deg)' }} />
+      <div className="bg-pill raised" style={{ width: 540, height: 200, bottom: '4%', right: '-10%', transform: 'rotate(-6deg)' }} />
+      <div className="bg-grid" />
+    </div>
+  );
+}
+
+/* ============================================================================
+   §6  ICONS
+   ========================================================================== */
+
+const Icon = ({ children, className = 'h-5 w-5', strokeWidth = 2 }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth}
+       strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+    {children}
+  </svg>
+);
+
+const BuildingIcon = () => <Icon><path d="M3 21h18"/><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M15 21V9h3a2 2 0 0 1 2 2v10"/><path d="M8 7h2M8 11h2M8 15h2"/></Icon>;
+const UserIcon = () => <Icon><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></Icon>;
+const PlusCircleIcon = () => <Icon><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></Icon>;
+const MinusCircleIcon = () => <Icon><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></Icon>;
+const NoteIcon = () => <Icon><path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h6"/><path d="M8 13h8M8 17h5"/></Icon>;
+const CalendarIcon = () => <Icon><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/><path d="M8 13h3M8 17h5"/></Icon>;
+
+const DownloadIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+       strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+    <path d="M12 3v13" /><path d="m7 11 5 5 5-5" />
+    <path d="M5 19h14" /><path d="M5 21h14" opacity="0.5" />
+  </svg>
+);
+const PrinterIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"
+       strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+    <path d="M6 9V3h12v6" /><rect x="4" y="9" width="16" height="8" rx="2.5" />
+    <path d="M7 17h10v4H7z" /><circle cx="17.5" cy="12.5" r="0.8" fill="currentColor" />
+  </svg>
+);
+const RefreshIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+       strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+    <path d="M3 12a9 9 0 0 1 15.3-6.4L21 8" /><path d="M21 3v5h-5" />
+    <path d="M21 12a9 9 0 0 1-15.3 6.4L3 16" /><path d="M3 21v-5h5" />
+  </svg>
+);
+const SparkleIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"
+       strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+    <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+    <path d="M12 6.5 13.5 10.5 17.5 12 13.5 13.5 12 17.5 10.5 13.5 6.5 12 10.5 10.5z" fill="currentColor" fillOpacity="0.15" />
+  </svg>
+);
+const LogoutIcon = () => <Icon><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></Icon>;
+const SunIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+       strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+  </svg>
+);
+const MoonIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+       strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+    <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+  </svg>
+);
+const LogoMark = () => <Icon className="h-5 w-5"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></Icon>;
+const EyeIcon = () => <Icon className="h-[18px] w-[18px]"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></Icon>;
+const EyeOffIcon = () => <Icon className="h-[18px] w-[18px]"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="m1 1 22 22"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/></Icon>;
+const WhatsAppIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5" aria-hidden="true">
+    <path d="M20.52 3.48A11.94 11.94 0 0 0 12.04 0C5.46 0 .1 5.36.1 11.94c0 2.11.55 4.17 1.6 5.99L0 24l6.23-1.63a11.94 11.94 0 0 0 5.81 1.48h.01c6.58 0 11.94-5.36 11.94-11.94 0-3.19-1.24-6.19-3.47-8.43zM12.05 21.8h-.01a9.9 9.9 0 0 1-5.04-1.38l-.36-.21-3.7.97.99-3.61-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.46 4.44-9.9 9.9-9.9 2.64 0 5.12 1.03 6.99 2.9a9.82 9.82 0 0 1 2.9 7c0 5.46-4.44 9.9-9.92 9.9zm5.44-7.42c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.09 3.2 5.07 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35z"/>
+  </svg>
+);
+const LockIcon = () => <Icon className="h-4 w-4"><rect x="3.5" y="10.5" width="17" height="11" rx="2.5"/><path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5"/></Icon>;
+
+/* NEW: reverse arrow icon (used by the login back button) */
+const ArrowLeftIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
+       strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]" aria-hidden="true">
+    <path d="M19 12H5" />
+    <path d="m12 19-7-7 7-7" />
+  </svg>
+);
+
+const ShareWebIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+       strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18" />
+    <path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z" />
+    <path d="M16.5 7.5 20 4M20 4h-3.5M20 4v3.5" strokeWidth="2.2" />
+  </svg>
+);
+
+function Button({ variant = 'ghost', size = 'md', chip = null, children, className = '', ...rest }) {
+  const variantClass = { ghost: 'btn-ghost', primary: 'btn-primary', whatsapp: 'btn-whatsapp', share: 'btn-share' }[variant] || 'btn-ghost';
+  const sizeClass = size === 'lg' ? 'btn-delivery' : '';
+  return (
+    <button type="button" className={`btn ${variantClass} ${sizeClass} ${className}`} {...rest}>
+      {chip && <span className="btn-chip">{chip}</span>}
+      {children && <span className="relative z-10">{children}</span>}
+    </button>
+  );
+}
+
+function IconTile({ variant = 'soft', onClick, title, children, disabled = false }) {
+  return (
+    <button type="button" onClick={onClick} title={title} aria-label={title} disabled={disabled}
+      className={`icon-tile ${variant}`}>
+      {children}
+    </button>
+  );
+}
+
+function LabelledTile({ label, variant, onClick, title, children, disabled = false }) {
+  return (
+    <div className="tile-wrap flex flex-col items-center justify-start gap-1.5" style={{ width: '100%' }}>
+      <IconTile variant={variant} onClick={onClick} title={title} disabled={disabled}>
+        {children}
+      </IconTile>
+      <span className="tile-label" title={label}>{label}</span>
+    </div>
+  );
+}
+
+function LabelledCurrencyTile({ value, onChange, options }) {
+  const info = CURRENCY_INFO[value] || { symbol: '', country: '' };
+  return (
+    <div className="tile-wrap flex flex-col items-center justify-start gap-1.5" style={{ width: '100%' }}>
+      <div className="currency-tile-wrap">
+        <div className="currency-tile-visual" aria-hidden="true">
+          <span className="currency-tile-symbol">{info.symbol}</span>
+          <span className="currency-tile-country">{info.country}</span>
+        </div>
+        <select
+          className="currency-tile-select"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          title={`Currency: ${value}`}
+          aria-label="Currency"
+        >
+          {options.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+      <span className="tile-label" title="Currency">Currency</span>
+    </div>
+  );
+}
+
+function Input({ label, value, onChange, type = 'text', placeholder = '', className = '', suffix = null, maxLength = 200, inputMode = undefined }) {
+  return (
+    <label className={`block min-w-0 ${className}`}>
+      {label && (
+        <span className="mb-1.5 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <span>{label}</span>{suffix}
+        </span>
+      )}
+      <input type={type} value={value ?? ''} placeholder={placeholder} inputMode={inputMode}
+        maxLength={maxLength} autoComplete="off" spellCheck={false}
+        onChange={(e) => onChange(e.target.value)}
+        className="neu-input rect"/>
+    </label>
+  );
+}
+function Textarea({ label, value, onChange, rows = 2, placeholder = '', maxLength = 1000 }) {
+  return (
+    <label className="block">
+      {label && <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</span>}
+      <textarea rows={rows} value={value ?? ''} placeholder={placeholder} maxLength={maxLength} spellCheck={false}
+        onChange={(e) => onChange(e.target.value)}
+        className="neu-input rect resize-y"/>
+    </label>
+  );
+}
+function Select({ label, value, onChange, options, className = '' }) {
+  return (
+    <label className={`block min-w-0 ${className}`}>
+      {label && <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</span>}
+      <select value={value} onChange={(e) => onChange(e.target.value)} className="neu-input rect">
+        {options.map((o) => <option key={o} value={o}>{o}</option>)}
+      </select>
+    </label>
+  );
+}
+
+function Section({ title, icon, defaultOpen = true, children, badge, accent = 'indigo', index = 0 }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const accentMap = {
+    indigo:  'text-indigo-500 dark:text-indigo-400',
+    emerald: 'text-emerald-500 dark:text-emerald-400',
+    rose:    'text-rose-500 dark:text-rose-400',
+    amber:   'text-amber-500 dark:text-amber-400',
+    slate:   'text-slate-500 dark:text-slate-400',
+  };
+  return (
+    <section className="neu animate-fade-up overflow-hidden" style={{ animationDelay: `${index * 60}ms`, borderRadius: 22 }}>
+      <button type="button" onClick={() => setOpen(o => !o)}
+        className="flex w-full items-center gap-2.5 px-4 py-3.5 text-left transition-colors duration-300 hover:bg-white/30 dark:hover:bg-white/[0.03]">
+        <span className={`${accentMap[accent]} transition-transform duration-500 ${open ? 'rotate-0' : '-rotate-6'}`}>{icon}</span>
+        <span className="flex-1 font-display text-sm font-bold tracking-tight text-slate-800 dark:text-slate-100">{title}</span>
+        {badge != null && (
+          <span className="rounded-full bg-slate-900/5 px-2.5 py-0.5 text-[11px] font-bold tabular-nums text-slate-600 dark:bg-white/10 dark:text-slate-200">{badge}</span>
+        )}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
+             className={`h-4 w-4 text-slate-400 transition-transform duration-500 ${open ? 'rotate-180' : ''}`}>
+          <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      <div className={`grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(.16,1,.3,1)] ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+        <div className="overflow-hidden">
+          <div className="space-y-3 border-t border-slate-300/30 px-4 pb-4 pt-3.5 dark:border-white/5">{children}</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================================
+   §7  LOGIN PAGE — with new reverse / back button (appears on failed login)
+   ========================================================================== */
+
+function LoginPage({ onAuth, theme, onToggleTheme }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [shakeKey, setShakeKey] = useState(0);
+  /* NEW: controls visibility of the reverse / back button */
+  const [showBackButton, setShowBackButton] = useState(false);
+
+  const triggerShake = () => setShakeKey(k => k + 1);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError('');
+    if (!username.trim() || !password) {
+      setError('Please enter both username and password.');
+      triggerShake();
+      return;
+    }
+    setBusy(true);
+    setTimeout(() => {
+      const result = loginUser(username, password);
+      if (result.ok) {
+        onAuth(result.username);
+      } else {
+        setError(result.error);
+        triggerShake();
+        setBusy(false);
+        /* Show the reverse / back button only after a wrong attempt */
+        setShowBackButton(true);
+      }
+    }, 350);
+  };
+
+  /* Reverse / back button handler — resets the form to pristine state */
+  const handleBack = () => {
+    setUsername('');
+    setPassword('');
+    setError('');
+    setShowBackButton(false);
+  };
+
+  return (
+    <div className="login-shell">
+      <NeumorphicBackground />
+      <div className="fixed top-6 right-6 z-10">
+        <button onClick={onToggleTheme} className="neu-social"
+          title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}>
+          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+        </button>
+      </div>
+
+      <div key={shakeKey} className="login-card animate-fade-up"
+           style={error ? { animation: 'shake .4s ease' } : undefined}>
+        <div className="flex items-center gap-2.5 mb-8">
+          <div className="grid h-11 w-11 place-items-center rounded-2xl text-white"
+               style={{
+                 background: 'linear-gradient(145deg,#6366f1,#8b5cf6)',
+                 boxShadow: '5px 5px 14px rgba(99,102,241,0.45), -3px -3px 10px rgba(255,255,255,0.5), inset 0 1px 0 rgba(255,255,255,0.3)',
+               }}>
+            <LogoMark />
+          </div>
+          <div>
+            <p className="font-display text-base font-extrabold tracking-tight text-slate-800 dark:text-slate-100 leading-tight">Payslip Studio</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">Sign in to continue</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} autoComplete="off" noValidate>
+          <div className="mb-5">
+            <label className="login-label" htmlFor="username">Username</label>
+            <input id="username" type="text" autoComplete="username" className="login-input"
+              placeholder="Enter your username" value={username}
+              onChange={(e) => setUsername(e.target.value.replace(/[^\w.@-]/g, '').slice(0, 40))}
+              maxLength={40} spellCheck={false} autoFocus />
+          </div>
+
+          <div className="mb-7">
+            <label className="login-label" htmlFor="password">Password</label>
+            <div className="relative">
+              <input id="password" type={showPwd ? 'text' : 'password'}
+                autoComplete="current-password" className="login-input"
+                placeholder="Enter password" value={password}
+                onChange={(e) => setPassword(e.target.value.slice(0, 128))} maxLength={128} />
+              <button type="button" onClick={() => setShowPwd(s => !s)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-500 transition-colors"
+                aria-label={showPwd ? 'Hide password' : 'Show password'} tabIndex={-1}>
+                {showPwd ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <div className="mb-4 flex items-start gap-2 rounded-2xl border border-rose-300/60 bg-rose-500/10 px-4 py-2.5 text-xs font-medium text-rose-600 dark:border-rose-500/30 dark:text-rose-300 animate-fade-in">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 h-3.5 w-3.5 shrink-0">
+                <circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
+
+          <button type="submit" disabled={busy} className="login-btn-primary">
+            {busy ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity="0.3"/>
+                  <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                </svg>
+                Signing In…
+              </span>
+            ) : 'Sign In'}
+          </button>
+
+          {/* NEW: Reverse / back button — visible ONLY after wrong credentials */}
+          {showBackButton && (
+            <div className="mt-3">
+              <button type="button" onClick={handleBack} className="login-back-btn"
+                title="Go back and try again">
+                <ArrowLeftIcon />
+                <span>Back to Login</span>
+              </button>
+            </div>
+          )}
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- §8  FEATURE COMPONENTS -------------------------------------- */
+
+function LineItemsEditor({ title, tone, items, onChange, currency, suggestions }) {
+  const listId = `suggest-${title.toLowerCase().replace(/[^a-z]/g,'')}`;
+  const total = sumItems(items);
+  const toneMap = {
+    emerald: { text: 'text-emerald-600 dark:text-emerald-400', chip: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' },
+    rose:    { text: 'text-rose-600 dark:text-rose-400',       chip: 'bg-rose-500/10 text-rose-700 dark:text-rose-300' },
+  };
+  const t = toneMap[tone] || toneMap.emerald;
+  const updateRow = (id, patch) => onChange(items.map(r => r.id === id ? { ...r, ...patch } : r));
+  const removeRow = (id) => onChange(items.filter(r => r.id !== id));
+  const addRow    = () => onChange([...items, { id: uid(), label: '', amount: '' }]);
+
+  return (
+    <div className="neu-inset p-3" style={{ borderRadius: 18 }}>
+      <div className="mb-2.5 flex items-center justify-between">
+        <span className={`text-[10px] font-black uppercase tracking-[0.14em] ${t.text}`}>{title}</span>
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums ${t.chip}`}>{formatMoney(total, currency)}</span>
+      </div>
+      <datalist id={listId}>{suggestions.map(s => <option key={s} value={s}/>)}</datalist>
+      <div className="space-y-2">
+        {items.map((row, i) => (
+          <div key={row.id} className="flex animate-fade-up items-center gap-2" style={{ animationDelay: `${i * 30}ms` }}>
+            <input list={listId} value={row.label} placeholder="Component name" maxLength={80}
+              onChange={(e) => updateRow(row.id, { label: sanitiseText(e.target.value, 80) })}
+              className="neu-input rect !py-2 !text-[13px] min-w-0 flex-1"/>
+            <input inputMode="decimal" value={row.amount} placeholder="0.00" maxLength={14}
+              onChange={(e) => updateRow(row.id, { amount: e.target.value.replace(/[^\d.,-]/g, '') })}
+              className="neu-input rect !py-2 !text-[13px] w-24 text-right tabular-nums"/>
+            <button type="button" onClick={() => removeRow(row.id)} title="Remove row"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-400 transition-all duration-200 hover:scale-110 hover:bg-rose-500/10 hover:text-rose-500 active:scale-95">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-4 w-4"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        ))}
+        {items.length === 0 && <p className="py-2 text-center text-xs text-slate-400 dark:text-slate-500">No items — add a row to begin.</p>}
+      </div>
+      <button type="button" onClick={addRow}
+        className="mt-2.5 w-full rounded-lg border border-dashed border-slate-400/40 py-2 text-xs font-bold text-slate-500 transition hover:border-indigo-400 hover:bg-white/40 hover:text-indigo-600 dark:border-white/15 dark:text-slate-400 dark:hover:border-indigo-400 dark:hover:bg-white/5 dark:hover:text-indigo-300">
+        + Add row
+      </button>
+    </div>
+  );
+}
+
+function LogoUpload({ value, onChange }) {
+  const inputRef = useRef(null);
+  const MAX_SIZE = 2 * 1024 * 1024;
+  const ALLOWED = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp'];
+  const handleFile = (file) => {
+    if (!file) return;
+    if (!ALLOWED.includes(file.type)) { alert('Only PNG, JPEG, SVG or WebP images are allowed.'); return; }
+    if (file.size > MAX_SIZE) { alert('Logo must be smaller than 2 MB.'); return; }
+    const reader = new FileReader();
+    reader.onload = () => onChange(reader.result);
+    reader.readAsDataURL(file);
+  };
+  return (
+    <div>
+      <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Company Logo</span>
+      <div className="flex items-center gap-3">
+        <div className="neu-inset grid h-14 w-14 shrink-0 place-items-center overflow-hidden" style={{ borderRadius: 14 }}>
+          {value ? <img src={value} alt="Logo" className="h-full w-full object-contain"/> : <span className="text-[10px] font-bold text-slate-400">Logo</span>}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="ghost" onClick={() => inputRef.current?.click()} chip={<SparkleIcon />}>Upload</Button>
+          {value && <Button variant="ghost" onClick={() => onChange('')} className="!text-rose-500">Remove</Button>}
+        </div>
+      </div>
+      <input ref={inputRef} type="file" accept={ALLOWED.join(',')} className="hidden"
+        onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value=''; }}/>
+    </div>
+  );
+}
+
+const InfoItem = ({ label, value }) => (
+  <div className="min-w-0">
+    <p className="text-[9.5px] font-semibold uppercase tracking-[0.13em] text-slate-400">{label}</p>
+    <p className="mt-0.5 break-words text-[12px] font-medium text-slate-800">{value || '—'}</p>
+  </div>
+);
+
+function AmountTable({ rows, title, totalLabel, total, fmt, tone }) {
+  const visible = rows.filter(r => (r.label || '').trim() !== '' || toNumber(r.amount) !== 0);
+  const toneMap = {
+    emerald: { head: 'bg-emerald-50 text-emerald-700', foot: 'bg-emerald-50/70' },
+    rose:    { head: 'bg-rose-50 text-rose-700',       foot: 'bg-rose-50/70' },
+  };
+  const t = toneMap[tone];
+  return (
+    <div className="overflow-hidden rounded-lg border border-slate-200">
+      <div className={`px-3 py-2 text-[10.5px] font-bold uppercase tracking-wider ${t.head}`}>{title}</div>
+      <table className="w-full border-collapse">
+        <tbody>
+          {visible.length === 0 && <tr>
+            <td className="px-3 py-2 text-[11px] italic text-slate-400">No entries</td>
+            <td className="px-3 py-2 text-right text-[11px] italic text-slate-400">—</td>
+          </tr>}
+          {visible.map(row => (
+            <tr key={row.id} className="border-b border-slate-100 last:border-b-0">
+              <td className="px-3 py-[7px] text-[11.5px] leading-snug text-slate-600">{row.label || '—'}</td>
+              <td className="whitespace-nowrap px-3 py-[7px] text-right text-[11.5px] font-medium tabular-nums text-slate-700">{fmt(toNumber(row.amount))}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr className={`border-t border-slate-200 ${t.foot}`}>
+            <td className="px-3 py-2 text-[11.5px] font-bold text-slate-700">{totalLabel}</td>
+            <td className="whitespace-nowrap px-3 py-2 text-right text-[11.5px] font-bold tabular-nums text-slate-900">{fmt(total)}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  );
+}
+
+function PayslipSheet({ data, gross, totalDeductions, net, sheetRef, scale, forExport = false }) {
+  const { employer, employee, currency, notes } = data;
+  const fmt = (n) => formatMoney(n, currency);
+  const period = [employee.month, employee.year].filter(Boolean).join(' ') || '—';
+  const initial = (employer.name || 'C').trim().charAt(0).toUpperCase();
+
+  const attendance = [
+    { label: 'Working Days', value: employee.workingDays },
+    { label: 'Days Present', value: employee.daysPresent },
+    { label: 'Days Absent',  value: employee.daysAbsent  },
+  ].filter(a => String(a.value ?? '').trim() !== '');
+
+  return (
+    <div
+      id="payslip-sheet"
+      ref={sheetRef}
+      className="payslip-sheet flex flex-col bg-white text-slate-800"
+      style={{
+        width: '794px',
+        minHeight: '1123px',
+        padding: '38px 40px',
+        transform: forExport ? 'none' : `scale(${scale})`,
+        transformOrigin: 'top left',
+        borderRadius: forExport ? 0 : 6,
+        boxShadow: forExport ? 'none' : '0 40px 80px -30px rgba(2,6,23,0.45)',
+        overflow: 'hidden',
+      }}>
+      <div className="-mx-10 -mt-[38px] mb-6 h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400" />
+      <div className="flex items-start justify-between gap-6 border-b-2 border-indigo-600 pb-5">
+        <div className="flex min-w-0 items-start gap-4">
+          {employer.logo
+            ? <img src={employer.logo} alt="Company logo" className="h-16 w-16 shrink-0 rounded-lg border border-slate-100 bg-white object-contain" crossOrigin="anonymous"/>
+            : <div className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-2xl font-black text-white">{initial}</div>}
+          <div className="min-w-0">
+            <h1 className="text-[20px] font-black leading-tight tracking-tight text-slate-900">{employer.name || 'Company Name'}</h1>
+            <p className="mt-0.5 whitespace-pre-line text-[11px] leading-snug text-slate-500">{employer.address || 'Company address'}</p>
+            {employer.regId && <p className="mt-0.5 text-[11px] text-slate-500">Reg / Tax ID: {employer.regId}</p>}
+          </div>
+        </div>
+        <div className="shrink-0 text-right">
+          <span className="inline-block rounded-md bg-indigo-600 px-3 py-1.5 text-[11px] font-black tracking-[0.2em] text-white">PAYSLIP</span>
+          <p className="mt-3 text-[9.5px] font-semibold uppercase tracking-wider text-slate-400">Pay Period</p>
+          <p className="text-[13px] font-bold text-slate-800">{period}</p>
+        </div>
+      </div>
+      <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+        <div className="grid grid-cols-3 gap-x-5 gap-y-3">
+          <InfoItem label="Employee Name" value={employee.name}/>
+          <InfoItem label="Employee ID" value={employee.id}/>
+          <InfoItem label="Designation" value={employee.designation}/>
+          <InfoItem label="Department" value={employee.department}/>
+          <InfoItem label="Date of Joining" value={employee.doj}/>
+          <InfoItem label="UAN (Universal Account No.)" value={employee.uan}/>
+          <InfoItem label="Tax ID (PAN / SSN)" value={employee.taxId}/>
+          <InfoItem label="Payment Method" value={employee.bank}/>
+          <InfoItem label="Currency" value={currency}/>
+        </div>
+      </div>
+      {attendance.length > 0 && (
+        <div className="mt-3 grid gap-3" style={{ gridTemplateColumns: `repeat(${attendance.length}, minmax(0, 1fr))` }}>
+          {attendance.map((a) => (
+            <div key={a.label} className="flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2">
+              <div className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-indigo-50 text-indigo-600">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/></svg>
+              </div>
+              <div className="min-w-0">
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">{a.label}</p>
+                <p className="text-[13px] font-bold tabular-nums text-slate-800">{a.value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="mt-5 grid grid-cols-2 gap-5">
+        <AmountTable rows={data.earnings}  title="Earnings"  totalLabel="Gross Earnings"   total={gross}            fmt={fmt} tone="emerald"/>
+        <AmountTable rows={data.deductions} title="Deductions" totalLabel="Total Deductions" total={totalDeductions}  fmt={fmt} tone="rose"/>
+      </div>
+      <div className="mt-5 grid grid-cols-3 gap-3">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+          <p className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400">Gross Salary</p>
+          <p className="mt-0.5 text-[16px] font-bold tabular-nums text-slate-800">{fmt(gross)}</p>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+          <p className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400">Total Deductions</p>
+          <p className="mt-0.5 text-[16px] font-bold tabular-nums text-slate-800">− {fmt(totalDeductions)}</p>
+        </div>
+        <div className="rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 px-4 py-3 text-white">
+          <p className="text-[9.5px] font-semibold uppercase tracking-wider text-indigo-100">Net Salary</p>
+          <p className="mt-0.5 text-[18px] font-black tabular-nums">{fmt(net)}</p>
+        </div>
+      </div>
+      <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+        <p className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400">Net Salary in Words</p>
+        <p className="mt-0.5 text-[12px] font-medium italic leading-snug text-slate-700">{amountInWords(net, currency)}</p>
+      </div>
+      <div className="mt-auto pt-8">
+        <div className="flex items-end justify-between gap-10 border-t border-slate-200 pt-4">
+          <p className="max-w-[58%] text-[9.5px] leading-snug text-slate-400">{notes}</p>
+          <div className="text-center">
+            <div className="mb-1 h-10 w-44 border-b border-slate-400" />
+            <p className="text-[9.5px] font-medium text-slate-500">Authorised Signatory</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================================
+   §9  HD PDF GENERATION — 6× supersampling for 8K-quality output
+   ========================================================================== */
+
+/* 6× of 794 CSS px → ~4,764px wide → renders at ~8K-quality on A4 */
+const PDF_RENDER_SCALE = 6;
+
+async function generateHdPdf(sourceEl, data, onProgress) {
+  if (!window.html2canvas) throw new Error('html2canvas not loaded');
+  if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('jsPDF not loaded');
+
+  const { jsPDF } = window.jspdf;
+  onProgress?.(5);
+
+  const container = document.createElement('div');
+  container.style.cssText = [
+    'position:fixed','top:0','left:0','width:794px','background:#ffffff',
+    'z-index:2147483647','pointer-events:none','opacity:0','overflow:visible',
+  ].join(';');
+
+  const clone = sourceEl.cloneNode(true);
+  clone.removeAttribute('id');
+  clone.style.transform = 'none';
+  clone.style.boxShadow = 'none';
+  clone.style.borderRadius = '0';
+  clone.style.margin = '0';
+  clone.style.width = '794px';
+  clone.style.minHeight = '1123px';
+
+  container.appendChild(clone);
+  document.body.appendChild(container);
+
+  try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch {}
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  await new Promise(r => setTimeout(r, 300));
+
+  onProgress?.(20);
+
+  try {
+    const canvas = await window.html2canvas(clone, {
+      scale: PDF_RENDER_SCALE,
+      useCORS: true, allowTaint: false, backgroundColor: '#ffffff',
+      logging: false, imageTimeout: 0,
+      width: 794, height: clone.scrollHeight,
+      windowWidth: 794, windowHeight: clone.scrollHeight,
+      scrollX: 0, scrollY: 0,
+    });
+
+    onProgress?.(70);
+
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+
+    const imgData = canvas.toDataURL('image/png');
+    const ratio = canvas.width / canvas.height;
+    let w = pageW, h = pageW / ratio, x = 0, y = 0;
+    if (h > pageH) { h = pageH; w = pageH * ratio; x = (pageW - w) / 2; }
+
+    pdf.addImage(imgData, 'PNG', x, y, w, h, undefined, 'SLOW');
+    onProgress?.(92);
+
+    const safeName   = safeFilename(data.employee.name, 'Employee');
+    const safePeriod = safeFilename([data.employee.month, data.employee.year].filter(Boolean).join('_'), 'Period');
+    pdf.save(`Payslip_8K_${safeName}_${safePeriod}.pdf`);
+    onProgress?.(100);
+  } finally {
+    if (container.parentNode) document.body.removeChild(container);
+  }
+}
+
+async function buildHdPdfBlob(sourceEl, data) {
+  if (!window.html2canvas) throw new Error('html2canvas not loaded');
+  if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('jsPDF not loaded');
+  const { jsPDF } = window.jspdf;
+
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;top:0;left:0;width:794px;background:#ffffff;z-index:2147483647;pointer-events:none;opacity:0;';
+
+  const clone = sourceEl.cloneNode(true);
+  clone.removeAttribute('id');
+  clone.style.transform = 'none';
+  clone.style.boxShadow = 'none';
+  clone.style.borderRadius = '0';
+  clone.style.margin = '0';
+  clone.style.width = '794px';
+  clone.style.minHeight = '1123px';
+  container.appendChild(clone);
+  document.body.appendChild(container);
+
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await new Promise(r => setTimeout(r, 280));
+
+    const canvas = await window.html2canvas(clone, {
+      scale: PDF_RENDER_SCALE,
+      useCORS: true, allowTaint: false, backgroundColor: '#ffffff',
+      logging: false, imageTimeout: 0,
+      width: 794, height: clone.scrollHeight,
+      windowWidth: 794, windowHeight: clone.scrollHeight,
+      scrollX: 0, scrollY: 0,
+    });
+
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+
+    const imgData = canvas.toDataURL('image/png');
+    const ratio = canvas.width / canvas.height;
+    let w = pageW, h = pageW / ratio, x = 0, y = 0;
+    if (h > pageH) { h = pageH; w = pageH * ratio; x = (pageW - w) / 2; }
+
+    pdf.addImage(imgData, 'PNG', x, y, w, h, undefined, 'SLOW');
+    return pdf.output('blob');
+  } finally {
+    if (container.parentNode) document.body.removeChild(container);
+  }
+}
+
+/* ============================================================================
+   §10  WHATSAPP SHARE MODAL
+   ========================================================================== */
+
+function WhatsAppModal({ onClose, data, gross, deductions, net, currency, onToast, sheetRef }) {
+  const [phone, setPhone] = useState(data.employee.phone || '');
+  const [status, setStatus] = useState('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [method, setMethod] = useState('');
+
+  const canShareFiles = useMemo(() => {
+    return typeof navigator !== 'undefined'
+      && typeof navigator.canShare === 'function'
+      && typeof navigator.share === 'function';
+  }, []);
+
+  const handleShare = async () => {
+    setErrorMsg('');
+    const clean = String(phone || '').replace(/[\s\-().]/g, '').replace(/^\+/, '');
+    const hasPhone = /^[1-9]\d{6,14}$/.test(clean);
+
+    setStatus('sending');
+    try {
+      const blob = await buildHdPdfBlob(sheetRef.current, data);
+
+      const safeName   = safeFilename(data.employee.name, 'Employee');
+      const safePeriod = safeFilename([data.employee.month, data.employee.year].filter(Boolean).join('_'), 'Period');
+      const fileName   = `Payslip_${safeName}_${safePeriod}.pdf`;
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+
+      const period = [data.employee.month, data.employee.year].filter(Boolean).join(' ') || 'Payslip';
+      const fmt = (n) => formatMoney(n, currency);
+      const summary =
+        `*Payslip — ${period}*\n\n` +
+        `Employee: ${data.employee.name || '—'}\n` +
+        `ID: ${data.employee.id || '—'}\n` +
+        `Company: ${data.employer.name || '—'}\n\n` +
+        `Gross: ${fmt(gross)}\n` +
+        `Deductions: − ${fmt(deductions)}\n` +
+        `*Net: ${fmt(net)}*`;
+
+      if (canShareFiles && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: `Payslip — ${period}`, text: summary });
+          setMethod('share'); setStatus('success');
+          onToast?.('Payslip shared successfully', 'success');
+          return;
+        } catch (err) {
+          if (err?.name === 'AbortError') { setStatus('idle'); return; }
+          console.warn('[share] failed, falling back:', err);
+        }
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = fileName;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+      const waLink = hasPhone
+        ? `https://wa.me/${clean}?text=${encodeURIComponent(summary)}`
+        : `https://wa.me/?text=${encodeURIComponent(summary)}`;
+      const win = window.open(waLink, '_blank', 'noopener,noreferrer');
+      if (!win) throw new Error('Popup blocked. Please allow popups for this site.');
+
+      setMethod('download'); setStatus('success');
+      onToast?.('PDF downloaded. Attach it in the WhatsApp chat that opened.', 'info');
+    } catch (err) {
+      console.error('[WhatsApp share]', err);
+      setErrorMsg(err.message || 'Could not share the payslip.');
+      setStatus('error');
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-card" role="dialog" aria-modal="true">
+        <div className="mb-5 flex items-start gap-3">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-white"
+               style={{
+                 background: 'linear-gradient(145deg,#10b981,#059669)',
+                 boxShadow: '6px 6px 16px rgba(16,185,129,0.5), -4px -4px 12px rgba(255,255,255,0.4), inset 0 1px 0 rgba(255,255,255,0.25)',
+               }}>
+            <WhatsAppIcon />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-display text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
+              Share Payslip on WhatsApp
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              Sends the HD PDF to WhatsApp.
+            </p>
+          </div>
+          <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-500/10 hover:text-slate-600 dark:hover:text-slate-200">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-4 w-4"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        {status === 'success' ? (
+          <div className="py-4 text-center">
+            <svg className="check-svg mx-auto" viewBox="0 0 52 52">
+              <circle cx="26" cy="26" r="25" fill="none" stroke="#10b981" strokeWidth="2"/>
+              <path fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" d="M14 27l8 8 16-16"/>
+            </svg>
+            <h3 className="mt-4 font-display text-base font-bold text-slate-900 dark:text-white">
+              {method === 'share' ? 'Shared!' : 'PDF downloaded'}
+            </h3>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              {method === 'share'
+                ? 'The payslip PDF has been sent to the app you selected.'
+                : 'WhatsApp opened in a new tab. Drag the downloaded PDF into the chat to send it.'}
+            </p>
+            <Button variant="primary" onClick={onClose} className="mt-5 w-full !h-11">Done</Button>
+          </div>
+        ) : (
+          <>
+            <Input label="Recipient WhatsApp Number (optional)" type="tel" inputMode="tel"
+              value={phone} maxLength={20}
+              onChange={(v) => { setPhone(v.replace(/[^\d+\s\-().]/g, '')); setStatus('idle'); setErrorMsg(''); }}
+              placeholder="+1 415 555 0142"/>
+
+            <div className="neu-inset mt-4 p-3.5" style={{ borderRadius: 18 }}>
+              <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-400">Payslip Preview</p>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Employee</span><span className="font-bold text-slate-800 dark:text-slate-100">{data.employee.name || '—'}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Period</span><span className="font-bold text-slate-800 dark:text-slate-100">{[data.employee.month, data.employee.year].filter(Boolean).join(' ') || '—'}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Net Salary</span><span className="font-black text-emerald-600 dark:text-emerald-400">{formatMoney(net, currency)}</span></div>
+              </div>
+            </div>
+
+            {status === 'error' && errorMsg && (
+              <div className="mt-3 flex items-start gap-2 rounded-xl border border-rose-300/50 bg-rose-500/10 p-3 text-xs text-rose-600 dark:border-rose-500/30 dark:text-rose-300">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 h-3.5 w-3.5 shrink-0"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            <Button variant="whatsapp" size="lg" onClick={handleShare}
+              disabled={status === 'sending'} className="mt-5 w-full">
+              {status === 'sending' ? (
+                <>
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity="0.25"/>
+                    <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                  </svg>
+                  Preparing PDF…
+                </>
+              ) : (
+                <>
+                  <span className="btn-chip"><WhatsAppIcon /></span>
+                  {canShareFiles ? 'Share PDF to WhatsApp' : 'Download & Open WhatsApp'}
+                </>
+              )}
+            </Button>
+
+            <div className="mt-3 flex items-center justify-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500">
+              <LockIcon />
+              <span>PDF built locally in your browser · Never uploaded</span>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Toast({ message, type = 'success', onClose }) {
+  useEffect(() => { const t = setTimeout(onClose, 4000); return () => clearTimeout(t); }, [onClose]);
+  const tone = {
+    success: 'border-emerald-400/50 bg-emerald-500/95',
+    error:   'border-rose-400/50 bg-rose-500/95',
+    info:    'border-indigo-400/50 bg-indigo-500/95',
+  }[type];
+  return (
+    <div className={`fixed bottom-8 left-1/2 z-[100001] -translate-x-1/2 animate-fade-up rounded-2xl border px-5 py-3 text-sm font-bold text-white shadow-2xl backdrop-blur-lg ${tone}`}>
+      <div className="flex items-center gap-2">
+        {type === 'success' && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-4 w-4"><path d="m5 12 5 5 9-11"/></svg>}
+        {type === 'error'   && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-4 w-4"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>}
+        {type === 'info'    && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-4 w-4"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>}
+        {message}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- §11  APP SHELL --------------------------------------------- */
+
+const getInitialTheme = () => {
+  try { const s = localStorage.getItem(THEME_KEY); if (s === 'dark' || s === 'light') return s; } catch {}
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+};
+
+function App() {
+  const [session, setSession] = useState(loadSession);
+  const [theme, setTheme] = useState(getInitialTheme);
+  const [data, setData] = useState(loadPersistedState);
+  const [busy, setBusy] = useState(false);
+  const [showWhatsApp, setShowWhatsApp] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const sheetRef = useRef(null);
+  const shellRef = useRef(null);
+  const [scale, setScale] = useState(1);
+  const [sheetHeight, setSheetHeight] = useState(1123);
+
+  useEffect(() => { seedDefaultUser(); }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    try { localStorage.setItem(THEME_KEY, theme); } catch {}
+  }, [theme]);
+
+  useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {} }, [data]);
+
+  useEffect(() => {
+    if (!session) return;
+    const measure = () => {
+      const available = shellRef.current ? shellRef.current.clientWidth : 794;
+      setScale(Math.min(1, available / 794));
+      if (sheetRef.current) setSheetHeight(sheetRef.current.offsetHeight);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (shellRef.current) ro.observe(shellRef.current);
+    if (sheetRef.current) ro.observe(sheetRef.current);
+    window.addEventListener('resize', measure);
+    return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
+  }, [session]);
+
+  const gross = useMemo(() => sumItems(data.earnings), [data.earnings]);
+  const totalDeductions = useMemo(() => sumItems(data.deductions), [data.deductions]);
+  const net = gross - totalDeductions;
+
+  const patchEmployer = useCallback((p) => setData(d => ({ ...d, employer: { ...d.employer, ...p } })), []);
+  const patchEmployee = useCallback((p) => setData(d => ({ ...d, employee: { ...d.employee, ...p } })), []);
+  const setEarnings   = useCallback((earnings)   => setData(d => ({ ...d, earnings })), []);
+  const setDeductions = useCallback((deductions) => setData(d => ({ ...d, deductions })), []);
+
+  const autoWorkingDays = () => {
+    const total = daysInMonth(data.employee.month, data.employee.year);
+    if (total > 0) patchEmployee({ workingDays: String(total) });
+  };
+  const autoAbsent = () => {
+    const wd = toInt(data.employee.workingDays), dp = toInt(data.employee.daysPresent);
+    if (wd > 0) patchEmployee({ daysAbsent: String(Math.max(0, wd - dp)) });
+  };
+
+  const handleLoadSample = () => setData(createSampleState());
+  const handleReset = () => { if (window.confirm('Clear all fields and start from a blank payslip?')) setData(createInitialState()); };
+  const handlePrint = () => window.print();
+
+  const handleDownloadHdPdf = async () => {
+    const source = sheetRef.current;
+    if (!source) { window.alert('Preview not ready. Please try again.'); return; }
+
+    setBusy(true);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'pdf-overlay';
+    overlay.innerHTML = `
+      <div class="pdf-spinner">
+        <div class="ring"></div>
+        <span style="margin-top:10px">Generating 8K PDF…</span>
+        <span style="font-size:11px;font-weight:500;opacity:0.6;margin-top:2px">6× supersampling · 8K-quality output</span>
+        <div class="pdf-progress-bar"><div class="pdf-progress-fill" style="width:0%"></div></div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    try {
+      await generateHdPdf(source, data, (p) => {
+        const fill = overlay.querySelector('.pdf-progress-fill');
+        if (fill) fill.style.width = `${p}%`;
+      });
+      showToast('8K PDF downloaded successfully', 'success');
+    } catch (err) {
+      console.error('HD PDF failed:', err);
+      window.alert('Sorry, the PDF could not be generated: ' + (err?.message || 'Unknown error'));
+    } finally {
+      if (overlay.parentNode) document.body.removeChild(overlay);
+      setBusy(false);
+    }
+  };
+
+  const handleShareToWeb = async () => {
+    const period = [data.employee.month, data.employee.year].filter(Boolean).join(' ') || 'Payslip';
+    const shareUrl = window.location.href;
+    const fmt = (n) => formatMoney(n, data.currency);
+    const shareText =
+      `Payslip — ${period}\n` +
+      `Employee: ${data.employee.name || '—'}\n` +
+      `Net Salary: ${fmt(net)}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `Payslip — ${period}`, text: shareText, url: shareUrl });
+        showToast('Shared successfully', 'success');
+        return;
+      } catch (err) {
+        if (err?.name === 'AbortError') return;
+        console.warn('[share] failed, falling back:', err);
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
+      showToast('Payslip link copied to clipboard', 'success');
+    } catch (err) {
+      window.prompt('Copy this link to share the payslip:', shareUrl);
+    }
+  };
+
+  const toggleTheme = () => {
+    document.documentElement.classList.add('theme-transitioning');
+
+    const ripple = document.createElement('div');
+    ripple.className = 'theme-ripple';
+    document.body.appendChild(ripple);
+
+    const sweep = document.createElement('div');
+    sweep.className = 'theme-sweep';
+    document.body.appendChild(sweep);
+
+    const flash = document.createElement('div');
+    flash.className = 'theme-flash';
+    document.body.appendChild(flash);
+
+    setTheme(t => t === 'dark' ? 'light' : 'dark');
+
+    window.setTimeout(() => {
+      document.documentElement.classList.remove('theme-transitioning');
+      if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
+      if (sweep.parentNode)  sweep.parentNode.removeChild(sweep);
+      if (flash.parentNode)  flash.parentNode.removeChild(flash);
+    }, 1600);
+  };
+
+  const showToast = (message, type) => setToast({ message, type, id: Date.now() });
+
+  const handleLogout = () => {
+    if (window.confirm('Sign out of Payslip Studio?')) { clearSession(); setSession(null); }
+  };
+
+  if (!session) {
+    return (
+      <>
+        <LoginPage theme={theme} onToggleTheme={toggleTheme}
+          onAuth={(username) => { setSession({ username }); showToast(`Welcome, ${username}!`, 'success'); }} />
+        {toast && <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      </>
+    );
+  }
+
+  return (
+    <div className="relative z-[4] min-h-screen">
+      <NeumorphicBackground />
+
+      <header className="no-print sticky top-0 z-30">
+        <div className="mx-auto max-w-[1600px] px-4 pt-4 lg:px-6">
+          <div className="glass flex flex-col items-center justify-center"
+               style={{ padding: 20, gap: 18 }}>
+
+            <div className="flex items-center gap-3">
+              <div className="grid h-11 w-11 place-items-center rounded-2xl text-white transition-transform duration-500 hover:rotate-[8deg] hover:scale-105"
+                   style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '5px 5px 14px rgba(99,102,241,0.5), -3px -3px 10px rgba(255,255,255,0.4), inset 0 1px 0 rgba(255,255,255,0.25)' }}>
+                <LogoMark />
+              </div>
+              <div>
+                <h1 className="font-display text-[15px] font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white">Payslip Studio</h1>
+                <p className="hidden text-[11px] text-slate-500 dark:text-slate-400 sm:block">
+                  Signed in as <span className="font-bold text-indigo-500 dark:text-indigo-400">{session.username}</span>
+                </p>
+              </div>
+            </div>
+
+            <div
+              className="grid"
+              style={{
+                gridTemplateColumns: 'repeat(4, 84px)',
+                gap: '20px',
+              }}>
+
+              {/* Row 1: Sample · Reset · Print · Download — all soft style now */}
+              <LabelledTile label="Sample" variant="soft" onClick={handleLoadSample} title="Load sample data">
+                <SparkleIcon />
+              </LabelledTile>
+              <LabelledTile label="Reset" variant="soft" onClick={handleReset} title="Reset form">
+                <RefreshIcon />
+              </LabelledTile>
+              <LabelledTile label="Print" variant="soft" onClick={handlePrint} title="Print">
+                <PrinterIcon />
+              </LabelledTile>
+              <LabelledTile label="Download" variant="soft" onClick={handleDownloadHdPdf} title="Download HD PDF" disabled={busy}>
+                <DownloadIcon />
+              </LabelledTile>
+
+              {/* Row 2: WhatsApp · Theme · Logout · Currency — WhatsApp now soft too */}
+              <LabelledTile label="WhatsApp" variant="soft" onClick={() => setShowWhatsApp(true)} title="Share to WhatsApp">
+                <WhatsAppIcon />
+              </LabelledTile>
+              <LabelledTile label="Theme" variant="soft" onClick={toggleTheme}
+                title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}>
+                {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+              </LabelledTile>
+              <LabelledTile label="Logout" variant="soft" onClick={handleLogout} title="Sign out">
+                <LogoutIcon />
+              </LabelledTile>
+              <LabelledCurrencyTile
+                value={data.currency}
+                onChange={(c) => setData(d => ({ ...d, currency: c }))}
+                options={CURRENCY_ORDER}
+              />
+
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="app-main mx-auto grid max-w-[1600px] grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)] lg:px-6">
+        <aside className="no-print nice-scroll space-y-4 pb-24 lg:sticky lg:top-[280px] lg:max-h-[calc(100vh-300px)] lg:overflow-y-auto lg:pr-1">
+          <Section title="Employer Details" icon={<BuildingIcon />} accent="indigo" index={0}>
+            <Input label="Company Name" value={data.employer.name} maxLength={120}
+              onChange={(v) => patchEmployer({ name: sanitiseText(v, 120) })} placeholder="Northwind Technologies Inc."/>
+            <Textarea label="Company Address" value={data.employer.address} maxLength={300}
+              onChange={(v) => patchEmployer({ address: sanitiseText(v, 300) })} rows={3}
+              placeholder={'1420 Market Street, Suite 900\nSan Francisco, CA 94103'}/>
+            <Input label="Business Registration / Tax ID" value={data.employer.regId} maxLength={80}
+              onChange={(v) => patchEmployer({ regId: sanitiseText(v, 80) })} placeholder="US-EIN 84-2910377"/>
+            <LogoUpload value={data.employer.logo} onChange={(v) => patchEmployer({ logo: v })}/>
+          </Section>
+
+          <Section title="Employee Details" icon={<UserIcon />} accent="indigo" index={1}>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Input label="Full Name" className="sm:col-span-2" value={data.employee.name} maxLength={120} onChange={(v) => patchEmployee({ name: sanitiseText(v, 120) })} placeholder="Ananya Sharma"/>
+              <Input label="Employee ID" value={data.employee.id} maxLength={40} onChange={(v) => patchEmployee({ id: sanitiseText(v, 40) })} placeholder="EMP-2041"/>
+              <Input label="Designation" value={data.employee.designation} maxLength={80} onChange={(v) => patchEmployee({ designation: sanitiseText(v, 80) })} placeholder="Senior Software Engineer"/>
+              <Input label="Department" value={data.employee.department} maxLength={80} onChange={(v) => patchEmployee({ department: sanitiseText(v, 80) })} placeholder="Engineering"/>
+              <Input label="Date of Joining" type="date" value={data.employee.doj} onChange={(v) => patchEmployee({ doj: v })}/>
+              <Select label="Pay Period — Month" value={data.employee.month} onChange={(v) => patchEmployee({ month: v })} options={['', ...MONTHS]}/>
+              <Input label="Pay Period — Year" value={data.employee.year} maxLength={4} onChange={(v) => patchEmployee({ year: v.replace(/\D/g, '').slice(0, 4) })} placeholder="2025"/>
+              <Input label="UAN (Universal Account Number)" className="sm:col-span-2" value={data.employee.uan} maxLength={40} onChange={(v) => patchEmployee({ uan: sanitiseText(v, 40) })} placeholder="UAN 1012 3456 7890"/>
+              <Input label="Bank Account / Payment Method" className="sm:col-span-2" value={data.employee.bank} maxLength={120} onChange={(v) => patchEmployee({ bank: sanitiseText(v, 120) })} placeholder="Chase Bank •••• 4821 (ACH Transfer)"/>
+              <Input label="Tax ID (PAN / SSN)" className="sm:col-span-2" value={data.employee.taxId} maxLength={40} onChange={(v) => patchEmployee({ taxId: sanitiseText(v, 40) })} placeholder="SSN 123-45-6789"/>
+            </div>
+          </Section>
+
+          <Section title="Attendance & Working Days" icon={<CalendarIcon />} accent="amber" index={2}>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <Input label="Working Days" value={data.employee.workingDays} inputMode="numeric" maxLength={3}
+                onChange={(v) => patchEmployee({ workingDays: v.replace(/\D/g, '').slice(0, 3) })} placeholder="22"
+                suffix={<button type="button" onClick={autoWorkingDays} className="rounded-md bg-indigo-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-indigo-600 hover:bg-indigo-500/20 dark:text-indigo-300">Auto</button>}/>
+              <Input label="Days Present" value={data.employee.daysPresent} inputMode="numeric" maxLength={3}
+                onChange={(v) => patchEmployee({ daysPresent: v.replace(/\D/g, '').slice(0, 3) })} placeholder="22"
+                suffix={<button type="button" onClick={autoAbsent} className="rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-600 hover:bg-amber-500/20 dark:text-amber-300">Calc</button>}/>
+              <Input label="Days Absent" value={data.employee.daysAbsent} inputMode="numeric" maxLength={3}
+                onChange={(v) => patchEmployee({ daysAbsent: v.replace(/\D/g, '').slice(0, 3) })} placeholder="0"/>
+            </div>
+          </Section>
+
+          <Section title="Delivery Contact" icon={<WhatsAppIcon />} accent="emerald" index={3}>
+            <Input label="Employee Phone (WhatsApp)" type="tel" inputMode="tel" value={data.employee.phone} maxLength={20}
+              onChange={(v) => patchEmployee({ phone: v.replace(/[^\d+\s\-().]/g, '').slice(0, 20) })}
+              placeholder="+1 415 555 0142"/>
+          </Section>
+
+          <Section title="Earnings" icon={<PlusCircleIcon />} accent="emerald" index={4} badge={formatMoney(gross, data.currency)}>
+            <LineItemsEditor title="Earnings Breakdown" tone="emerald" items={data.earnings} onChange={setEarnings} currency={data.currency} suggestions={EARNING_SUGGESTIONS}/>
+          </Section>
+
+          <Section title="Deductions" icon={<MinusCircleIcon />} accent="rose" index={5} badge={formatMoney(totalDeductions, data.currency)}>
+            <LineItemsEditor title="Deductions Breakdown" tone="rose" items={data.deductions} onChange={setDeductions} currency={data.currency} suggestions={DEDUCTION_SUGGESTIONS}/>
+          </Section>
+
+          <Section title="Footer Note" icon={<NoteIcon />} accent="slate" defaultOpen={false} index={6}>
+            <Textarea label="Printed at the bottom of the payslip" value={data.notes} maxLength={400} onChange={(v) => setData(d => ({ ...d, notes: sanitiseText(v, 400) }))} rows={3}/>
+          </Section>
+
+          <div className="neu animate-fade-up p-4" style={{ animationDelay: '420ms', borderRadius: 22 }}>
+            <h3 className="mb-3 text-[10px] font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Live Summary</h3>
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between"><dt className="text-slate-500 dark:text-slate-400">Gross Salary</dt><dd className="font-bold tabular-nums text-slate-800 dark:text-slate-100">{formatMoney(gross, data.currency)}</dd></div>
+              <div className="flex justify-between"><dt className="text-slate-500 dark:text-slate-400">Total Deductions</dt><dd className="font-bold tabular-nums text-rose-500">− {formatMoney(totalDeductions, data.currency)}</dd></div>
+              <div className="flex justify-between border-t border-slate-300/40 pt-2 dark:border-white/10"><dt className="font-bold text-slate-700 dark:text-slate-200">Net Salary</dt><dd className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text font-black tabular-nums text-transparent">{formatMoney(net, data.currency)}</dd></div>
+            </dl>
+          </div>
+        </aside>
+
+        <section className="min-w-0 pb-24">
+          <div className="no-print mb-3 flex items-center justify-between">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Live Preview — A4</h2>
+            <span className="neu px-3 py-1 text-[10px] font-bold text-slate-500 dark:text-slate-400" style={{ borderRadius: 999 }}>
+              {Math.round(scale * 100)}% zoom
+            </span>
+          </div>
+          <div ref={shellRef} className="preview-shell w-full">
+            <div className="preview-frame mx-auto" style={{ width: `${794 * scale}px`, height: `${sheetHeight * scale}px` }}>
+              <PayslipSheet data={data} gross={gross} totalDeductions={totalDeductions} net={net}
+                sheetRef={sheetRef} scale={scale}/>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {showWhatsApp && (
+        <WhatsAppModal onClose={() => setShowWhatsApp(false)}
+          data={data} gross={gross} deductions={totalDeductions} net={net}
+          currency={data.currency} onToast={showToast} sheetRef={sheetRef}/>
+      )}
+      {toast && <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
